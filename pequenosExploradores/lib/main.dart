@@ -31,7 +31,7 @@ class MainApp extends StatelessWidget{
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'App',
-      initialRoute: AppRoutes.login,
+      initialRoute: AppRoutes.aberturaApp,
       routes: {
         AppRoutes.aberturaApp:(context) => const AberturaAppView(),
         AppRoutes.areaPais:(context) => const AreaPaisView(),
