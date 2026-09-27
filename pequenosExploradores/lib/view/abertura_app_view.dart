@@ -93,6 +93,7 @@ class _AberturaAppViewState extends State<AberturaAppView> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.cyan.shade700,
                     foregroundColor: Colors.blueGrey.shade100,
+                    side: BorderSide(color: Colors.black, width: 2),
                     padding: EdgeInsets.symmetric(horizontal: 90, vertical: 20),
                     textStyle: GoogleFonts.fredoka(
                       fontSize: 40,
@@ -114,6 +115,7 @@ class _AberturaAppViewState extends State<AberturaAppView> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.cyan.shade700,
                     foregroundColor: Colors.blueGrey.shade100,
+                    side: BorderSide(color: Colors.black, width: 2),
                     padding: EdgeInsets.symmetric(horizontal: 90, vertical: 20),
                     textStyle: GoogleFonts.fredoka(
                       fontSize: 40,
