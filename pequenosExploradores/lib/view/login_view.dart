@@ -20,6 +20,8 @@ class _LoginViewState extends State<LoginView> {
   // Associar o Controlador (back) na View (front)
   //
   final ctrl = GetIt.I.get<LoginController>();
+  String? filhoSelecionado;
+  final List<String> filhos = ['Ana', 'João', 'José'];
 
   @override
   void initState() {
@@ -110,7 +112,7 @@ class _LoginViewState extends State<LoginView> {
                   ],
                 ),
 
-                SizedBox(height: 70),
+                SizedBox(height: 50),
 
                 Column(
                   children: [
@@ -154,7 +156,7 @@ class _LoginViewState extends State<LoginView> {
                   ],
                 ),
 
-                SizedBox(height: 40),
+                SizedBox(height: 20),
 
                 Card(
                   color: Colors.blueGrey.shade100,
@@ -186,7 +188,39 @@ class _LoginViewState extends State<LoginView> {
                         ),
 
                         SizedBox(height: 15),
+
+                        DropdownButtonFormField<String>(
+                          value: filhoSelecionado,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                          decoration: InputDecoration(
+                            labelText: 'Filhos',
+                            filled: true,
+                            fillColor: Colors.blueGrey.shade200,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          items: filhos
+                              .map(
+                                (nome) => DropdownMenuItem(
+                                  value: nome,
+                                  child: Text(nome),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (valor) =>
+                              setState(() => filhoSelecionado = valor),
+                        ),
+
+                        SizedBox(height: 15),
+
                         TextField(
+                          obscureText: true,
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.w500,
@@ -243,11 +277,21 @@ class _LoginViewState extends State<LoginView> {
                     ),
                   ),
                   onPressed: () {
-                    if ((ctrl.email != '') || (ctrl.senha != '')) {
+                    String? erro;
+
+                    if (ctrl.email == '' ||
+                        ctrl.senha == '' ||
+                        filhoSelecionado == null) {
+                      erro = 'Informe o email, a senha e o filho!';
+                    } else if (!ctrl.emailValido) {
+                      erro = 'Digite um email válido!';
+                    }
+
+                    if (erro == null) {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => PrincipalView(),
+                          builder: (context) => PrincipalView(nomeCrianca: filhoSelecionado!),
                         ),
                       );
                     } else {
@@ -256,12 +300,10 @@ class _LoginViewState extends State<LoginView> {
                         builder: (context) {
                           return AlertDialog(
                             title: Text('Atenção'),
-                            content: Text('Informe o email e a senha!'),
+                            content: Text(erro!),
                             actions: [
                               TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context); // fecha o pop-up
-                                },
+                                onPressed: () => Navigator.pop(context),
                                 child: Text('OK'),
                               ),
                             ],

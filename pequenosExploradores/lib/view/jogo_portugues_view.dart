@@ -5,7 +5,8 @@ import 'package:progrmacao/view/principal_view.dart';
 import 'package:progrmacao/controller/jogo_portugues_controller.dart';
 
 class JogoPortuguesView extends StatefulWidget {
-  const JogoPortuguesView({super.key});
+  final String nomeCrianca;
+  const JogoPortuguesView({super.key, this.nomeCrianca = 'Criança'});
 
   @override
   State<JogoPortuguesView> createState() => _JogoPortuguesViewState();
@@ -27,35 +28,75 @@ class _JogoPortuguesViewState extends State<JogoPortuguesView> {
         ),
         child: SafeArea(
           child: Padding(
-            padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
+            padding: EdgeInsets.fromLTRB(20, 5, 20, 0),
             child: Column(
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey.shade300,
-                        foregroundColor: Colors.black,
-                        side: BorderSide(color: Colors.black, width: 2),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 6,
-                        ),
-                        textStyle: GoogleFonts.fredoka(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PrincipalView(),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey.shade300,
+                            foregroundColor: Colors.black,
+                            side: BorderSide(color: Colors.black, width: 2),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 6,
+                            ),
+                            textStyle: GoogleFonts.fredoka(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        );
-                      },
-                      child: Text('>'),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PrincipalView(),
+                              ),
+                            );
+                          },
+                          child: Text('>'),
+                        ),
+
+                        SizedBox(height: 10),
+
+                        Align(
+                          alignment: Alignment.topRight,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: Colors.black, width: 2),
+                              boxShadow: [
+                                BoxShadow(color: Colors.black26, blurRadius: 4),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  widget.nomeCrianca,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.fredoka(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
 
                     Align(
@@ -147,7 +188,7 @@ class _JogoPortuguesViewState extends State<JogoPortuguesView> {
                   ),
                 ),
 
-                SizedBox(height: 50),
+                SizedBox(height: 10),
 
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -182,7 +223,7 @@ class _JogoPortuguesViewState extends State<JogoPortuguesView> {
                   ),
                 ),
 
-                SizedBox(height: 70),
+                SizedBox(height: 75),
                 Text(
                   '© 2026 Pequenos Exploradores - Todos os Direitos Reservados',
                   style: GoogleFonts.fredoka(

@@ -9,14 +9,14 @@ import 'package:progrmacao/view/jogo_portugues_view.dart';
 import 'package:progrmacao/view/login_view.dart';
 
 class PrincipalView extends StatefulWidget {
-  const PrincipalView({super.key});
+  final String nomeCrianca;
+  const PrincipalView({super.key, this.nomeCrianca = 'Criança'});
 
   @override
   State<PrincipalView> createState() => _PrincipalViewState();
 }
 
 class _PrincipalViewState extends State<PrincipalView> {
-
   final ctrl = GetIt.I.get<PrincipalController>();
 
   @override
@@ -36,29 +36,71 @@ class _PrincipalViewState extends State<PrincipalView> {
             child: Column(
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey.shade300,
-                        foregroundColor: Colors.black,
-                        side: BorderSide(color: Colors.black, width: 2),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 6,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey.shade300,
+                            foregroundColor: Colors.black,
+                            side: BorderSide(color: Colors.black, width: 2),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 6,
+                            ),
+                            textStyle: GoogleFonts.fredoka(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => LoginView(),
+                              ),
+                            );
+                          },
+                          child: Text('>'),
                         ),
-                        textStyle: GoogleFonts.fredoka(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+
+                        SizedBox(height: 10),
+
+                        Align(
+                          alignment: Alignment.topRight,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: Colors.black, width: 2),
+                              boxShadow: [
+                                BoxShadow(color: Colors.black26, blurRadius: 4),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  widget.nomeCrianca,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.fredoka(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => LoginView()),
-                        );
-                      },
-                      child: Text('>'),
+                      ],
                     ),
 
                     Align(
@@ -158,7 +200,7 @@ class _PrincipalViewState extends State<PrincipalView> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => JogoMatematicaView(),
+                              builder: (context) => JogoMatematicaView(nomeCrianca: widget.nomeCrianca),
                             ),
                           );
                         },
@@ -282,7 +324,7 @@ class _PrincipalViewState extends State<PrincipalView> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => JogoPortuguesView(),
+                              builder: (context) => JogoPortuguesView(nomeCrianca: widget.nomeCrianca),
                             ),
                           );
                         },
@@ -381,7 +423,6 @@ class _PrincipalViewState extends State<PrincipalView> {
                         ),
                       ),
                     ),
-
                   ],
                 ),
                 SizedBox(height: 60),

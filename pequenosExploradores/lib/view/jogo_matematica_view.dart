@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class JogoMatematicaView extends StatefulWidget {
-  const JogoMatematicaView({super.key});
+  final String nomeCrianca;
+  const JogoMatematicaView({super.key, this.nomeCrianca = 'Criança'});
 
   @override
   State<JogoMatematicaView> createState() => _JogoMatematicaViewState();
