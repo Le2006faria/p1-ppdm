@@ -1,3 +1,4 @@
+// Nomes (rotas) de todas as telas do app, centralizados em um só lugar
 abstract class AppRoutes {
   static const String aberturaApp = '/abertura-app';
   static const String areaPais = '/area-pais';

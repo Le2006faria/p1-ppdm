@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:progrmacao/view/principal_view.dart';
 import 'package:progrmacao/controller/jogo_portugues_controller.dart';
 
+// Tela do jogo das palavras
 class JogoPortuguesView extends StatefulWidget {
   final String nomeCrianca;
   const JogoPortuguesView({super.key, this.nomeCrianca = 'Criança'});
@@ -18,6 +19,7 @@ class _JogoPortuguesViewState extends State<JogoPortuguesView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Container ocupa a tela toda e serve de fundo com degradê
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -31,6 +33,7 @@ class _JogoPortuguesViewState extends State<JogoPortuguesView> {
             padding: EdgeInsets.fromLTRB(20, 5, 20, 0),
             child: Column(
               children: [
+                // Barra superior: (botão de voltar + nome da criança)
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -65,6 +68,7 @@ class _JogoPortuguesViewState extends State<JogoPortuguesView> {
 
                         SizedBox(height: 10),
 
+                        // Selo com o nome da criança que está jogando
                         Align(
                           alignment: Alignment.topRight,
                           child: Container(
@@ -99,6 +103,7 @@ class _JogoPortuguesViewState extends State<JogoPortuguesView> {
                       ],
                     ),
 
+                    // Selo no canto direito com o logo e o nome do app
                     Align(
                       alignment: Alignment.topRight,
                       child: Container(
@@ -140,6 +145,7 @@ class _JogoPortuguesViewState extends State<JogoPortuguesView> {
 
                 SizedBox(height: 20),
 
+                // Cabeçalho: título + instrução do jogo
                 Column(
                   children: [
                     Column(
@@ -169,6 +175,7 @@ class _JogoPortuguesViewState extends State<JogoPortuguesView> {
 
                 SizedBox(height: 40),
 
+                // Lista das palavras do jogo
                 Expanded(
                   child: ListView.separated(
                     itemCount: _controller.palavras.length,
@@ -190,6 +197,7 @@ class _JogoPortuguesViewState extends State<JogoPortuguesView> {
 
                 SizedBox(height: 10),
 
+                // Botão principal: muda de função conforme o estado do jogo
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.cyan.shade700,
@@ -224,6 +232,8 @@ class _JogoPortuguesViewState extends State<JogoPortuguesView> {
                 ),
 
                 SizedBox(height: 75),
+
+                // Rodapé com os direitos autorais
                 Text(
                   '© 2026 Pequenos Exploradores - Todos os Direitos Reservados',
                   style: GoogleFonts.fredoka(
@@ -241,6 +251,7 @@ class _JogoPortuguesViewState extends State<JogoPortuguesView> {
   }
 }
 
+// Uma linha do jogo: a palavra à esquerda e os botões verdadeiro e falso à direita
 class _LinhaPalavra extends StatelessWidget {
   final String texto;
   final bool? resposta;
@@ -314,6 +325,7 @@ class _LinhaPalavra extends StatelessWidget {
   }
 }
 
+// Botão quadradinho de resposta
 class _BotaoResposta extends StatelessWidget {
   final FaIconData icone;
   final Color corIcone;

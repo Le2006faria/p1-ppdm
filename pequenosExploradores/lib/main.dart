@@ -13,6 +13,7 @@ import 'package:progrmacao/view/principal_view.dart';
 import 'package:progrmacao/view/recuperar_senha_view.dart';
 import 'package:progrmacao/view/sobre_view.dart';
 
+// Ponto de entrada do app: é a primeira função executada
 void main(){
   configurarDependencias();
 
@@ -23,6 +24,7 @@ void main(){
   
 }
 
+// Widget raiz do app: configura o MaterialApp
 class MainApp extends StatelessWidget{
   const MainApp({super.key});
 
@@ -31,7 +33,9 @@ class MainApp extends StatelessWidget{
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'App',
+      // Primeira tela exibida ao abrir o app
       initialRoute: AppRoutes.aberturaApp,
+      // Tabela de rotas: associa cada nome de rota à tela correspondente
       routes: {
         AppRoutes.aberturaApp:(context) => const AberturaAppView(),
         AppRoutes.areaPais:(context) => const AreaPaisView(),

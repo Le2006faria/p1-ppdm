@@ -8,6 +8,7 @@ import 'package:progrmacao/view/jogo_matematica_view.dart';
 import 'package:progrmacao/view/jogo_portugues_view.dart';
 import 'package:progrmacao/view/login_view.dart';
 
+// Tela principal do app (menu de jogos)
 class PrincipalView extends StatefulWidget {
   final String nomeCrianca;
   const PrincipalView({super.key, this.nomeCrianca = 'Criança'});
@@ -22,6 +23,7 @@ class _PrincipalViewState extends State<PrincipalView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Container ocupa a tela toda e serve de fundo com degradê
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -35,6 +37,7 @@ class _PrincipalViewState extends State<PrincipalView> {
             padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
             child: Column(
               children: [
+                // Barra superior: (botão de voltar + nome da criança)
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -69,6 +72,7 @@ class _PrincipalViewState extends State<PrincipalView> {
 
                         SizedBox(height: 10),
 
+                        // Selo com o nome da criança que está jogando
                         Align(
                           alignment: Alignment.topRight,
                           child: Container(
@@ -103,6 +107,7 @@ class _PrincipalViewState extends State<PrincipalView> {
                       ],
                     ),
 
+                    // Selo no canto direito com o logo e o nome do app
                     Align(
                       alignment: Alignment.topRight,
                       child: Container(
@@ -144,6 +149,7 @@ class _PrincipalViewState extends State<PrincipalView> {
 
                 SizedBox(height: 40),
 
+                // Cabeçalho: título + instrução
                 Column(
                   children: [
                     Column(
@@ -176,6 +182,8 @@ class _PrincipalViewState extends State<PrincipalView> {
                 //
                 // Botão
                 //
+
+                // Linha com os dois botões de jogo, um em cada ponta
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -204,6 +212,8 @@ class _PrincipalViewState extends State<PrincipalView> {
                             ),
                           );
                         },
+
+                        // Stack sobrepõe widgets: o texto "Números" no meio e quatro ícones decorativos, um em cada canto
                         child: Stack(
                           fit: StackFit.expand,
                           alignment: Alignment.center,
@@ -303,6 +313,7 @@ class _PrincipalViewState extends State<PrincipalView> {
                       ),
                     ),
 
+                    // Botão do jogo de Português ("Letras")
                     SizedBox(
                       width: 160,
                       height: 200,
@@ -427,6 +438,7 @@ class _PrincipalViewState extends State<PrincipalView> {
                 ),
                 SizedBox(height: 60),
 
+                // Botão "Área dos pais": abre a tela protegida por senha de adulto
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.cyan.shade700,
@@ -447,6 +459,7 @@ class _PrincipalViewState extends State<PrincipalView> {
                   child: Text('Área dos pais'),
                 ),
 
+                // Spacer ocupa todo o espaço livre, empurrando o rodapé
                 Spacer(),
                 Text(
                   '© 2026 Pequenos Exploradores - Todos os Direitos Reservados',

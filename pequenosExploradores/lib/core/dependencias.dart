@@ -10,8 +10,10 @@ import 'package:progrmacao/controller/principal_controller.dart';
 import 'package:progrmacao/controller/recuperar_senha_controller.dart';
 import 'package:progrmacao/controller/sobre_controller.dart';
 
+// Instância global do GetIt, usada para registrar os controllers aqui
 final g = GetIt.instance;
 
+// Registra todos os controllers no GetIt
 void configurarDependencias(){
   
   g.registerSingleton<AberturaAppController>(AberturaAppController());

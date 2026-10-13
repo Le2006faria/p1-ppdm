@@ -193,7 +193,7 @@ class _CadastrarUsuarioViewState extends State<CadastrarUsuarioView> {
                       onPressed: () {
                         Navigator.pop(context); // volta para o Login
                       },
-                      child: Text('<'),
+                      child: Text('>'),
                     ),
 
                     Align(

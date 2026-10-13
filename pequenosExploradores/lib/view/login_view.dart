@@ -8,6 +8,7 @@ import 'package:progrmacao/view/cadastrar_usuario_view.dart';
 import 'package:progrmacao/view/principal_view.dart';
 import 'package:progrmacao/view/recuperar_senha_view.dart';
 
+// Tela de login do app
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
 
@@ -20,7 +21,10 @@ class _LoginViewState extends State<LoginView> {
   // Associar o Controlador (back) na View (front)
   //
   final ctrl = GetIt.I.get<LoginController>();
+
+  // Criança escolhida no dropdown (null = nenhuma escolhida ainda)
   String? filhoSelecionado;
+  // Lista fixa de criança (vou trocar na sprint do back)
   final List<String> filhos = ['Ana', 'João', 'José'];
 
   @override
@@ -32,6 +36,7 @@ class _LoginViewState extends State<LoginView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Container ocupa a tela toda e serve de fundo com degradê
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -45,6 +50,7 @@ class _LoginViewState extends State<LoginView> {
             padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
             child: Column(
               children: [
+                // Barra superior: botão de voltar + selo com o nome do app
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -114,6 +120,7 @@ class _LoginViewState extends State<LoginView> {
 
                 SizedBox(height: 50),
 
+                // Cabeçalho: ícone de usuário + título + subtítulo
                 Column(
                   children: [
                     Row(
@@ -158,6 +165,7 @@ class _LoginViewState extends State<LoginView> {
 
                 SizedBox(height: 20),
 
+                // Formulário (dentro de um Card): email, filho e senha
                 Card(
                   color: Colors.blueGrey.shade100,
                   elevation: 6,
@@ -189,6 +197,7 @@ class _LoginViewState extends State<LoginView> {
 
                         SizedBox(height: 15),
 
+                        // Dropdown para escolher qual criança vai usar o app
                         DropdownButtonFormField<String>(
                           value: filhoSelecionado,
                           style: TextStyle(
@@ -219,6 +228,7 @@ class _LoginViewState extends State<LoginView> {
 
                         SizedBox(height: 15),
 
+                        // Campo de senha
                         TextField(
                           obscureText: true,
                           style: TextStyle(
@@ -239,6 +249,7 @@ class _LoginViewState extends State<LoginView> {
                           },
                         ),
 
+                        // Link para a tela de recuperação de senha
                         TextButton(
                           onPressed: () {
                             Navigator.push(
@@ -265,6 +276,7 @@ class _LoginViewState extends State<LoginView> {
 
                 SizedBox(height: 35),
 
+                // Botão de acesso: valida os campos e entra no app
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.cyan.shade700,
@@ -315,6 +327,7 @@ class _LoginViewState extends State<LoginView> {
                   child: Text('Acessar'),
                 ),
 
+                // Link para a tela de cadastro de novo usuário
                 TextButton(
                   onPressed: () {
                     Navigator.push(
@@ -336,6 +349,7 @@ class _LoginViewState extends State<LoginView> {
                   ),
                 ),
 
+                // Spacer ocupa todo o espaço livre, empurrando o rodapé
                 Spacer(),
                 Text(
                   '© 2026 Pequenos Exploradores - Todos os Direitos Reservados',

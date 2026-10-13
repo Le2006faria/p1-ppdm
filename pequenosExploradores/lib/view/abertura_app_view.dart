@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:progrmacao/view/login_view.dart';
 import 'package:progrmacao/view/sobre_view.dart';
 
+// Tela inicial do app "Pequenos Exploradores"
 class AberturaAppView extends StatefulWidget {
   const AberturaAppView({super.key});
 
@@ -28,6 +29,7 @@ class _AberturaAppViewState extends State<AberturaAppView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Container ocupa a tela toda e serve de fundo com degradê
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -89,6 +91,7 @@ class _AberturaAppViewState extends State<AberturaAppView> {
                 //
                 SizedBox(height: 15),
 
+                // Botão "Começar": leva o usuário para a tela de Login
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.cyan.shade700,
@@ -111,6 +114,7 @@ class _AberturaAppViewState extends State<AberturaAppView> {
 
                 SizedBox(height: 30),
 
+                // Botão "Tutorial": leva o usuário para a tela Sobre
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.cyan.shade700,
@@ -131,6 +135,7 @@ class _AberturaAppViewState extends State<AberturaAppView> {
                   child: Text('Tutorial'),
                 ),
 
+                // Spacer ocupa todo o espaço livre, empurrando o rodapé
                 Spacer(),
                 Text(
                   '© 2026 Pequenos Exploradores - Todos os Direitos Reservados',

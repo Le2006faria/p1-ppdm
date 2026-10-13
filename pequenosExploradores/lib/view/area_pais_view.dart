@@ -6,6 +6,7 @@ import 'package:progrmacao/controller/area_pais_controller.dart';
 import 'package:progrmacao/view/perfil_view.dart';
 import 'package:progrmacao/view/recuperar_senha_view.dart';
 
+// Tela da Área dos Pais
 class AreaPaisView extends StatefulWidget {
   const AreaPaisView({super.key});
 
@@ -15,6 +16,8 @@ class AreaPaisView extends StatefulWidget {
 
 class _AreaPaisViewState extends State<AreaPaisView> {
   final ctrl = GetIt.I.get<AreaPaisController>();
+
+  // Dados fixos e temporários para a mãe e crianças, será dinâmico na sprint do back
   final String nomeResponsavel = 'Maria Silva';
   final List<String> nomeCrianca = ['Ana', 'João', 'José'];
   double limiteDiario = 60;
@@ -29,6 +32,7 @@ class _AreaPaisViewState extends State<AreaPaisView> {
     });
   }
 
+  // Mostra o pop-up que pede a senha do adulto antes de liberar a tela
   void _mostrarPopupResponsavel() {
     showDialog(
       context: context,
@@ -91,6 +95,7 @@ class _AreaPaisViewState extends State<AreaPaisView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Container ocupa a tela toda e serve de fundo com degradê
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -104,6 +109,7 @@ class _AreaPaisViewState extends State<AreaPaisView> {
             padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
             child: Column(
               children: [
+                 // Barra superior: botão de voltar + selo com o nome do app
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -127,6 +133,7 @@ class _AreaPaisViewState extends State<AreaPaisView> {
                       child: Text('>'),
                     ),
 
+                    // Selo no canto direito com o logo e o nome do app
                     Align(
                       alignment: Alignment.topRight,
                       child: Container(
@@ -168,6 +175,7 @@ class _AreaPaisViewState extends State<AreaPaisView> {
 
                 SizedBox(height: 20),
 
+                // Cabeçalho: título + subtítulo
                 Column(
                   children: [
                     Row(
@@ -201,6 +209,9 @@ class _AreaPaisViewState extends State<AreaPaisView> {
                 //
                 SizedBox(height: 30),
 
+                // Cards com os controles de tempo (sliders)
+
+                // Card 1: limite de tempo de uso por dia
                 _CardMoldura(
                   child: _TempoSlider(
                     titulo: 'Controle de tempo de uso diário',
@@ -211,6 +222,7 @@ class _AreaPaisViewState extends State<AreaPaisView> {
 
                 SizedBox(height: 10),
 
+                // Card 2: média de uso diário
                 _CardMoldura(
                   child: _TempoSlider(
                     titulo: 'Média de uso diário',
@@ -221,6 +233,7 @@ class _AreaPaisViewState extends State<AreaPaisView> {
 
                 SizedBox(height: 20),
 
+                // Botão "Meu Perfil": abre a tela de perfil
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
@@ -249,6 +262,7 @@ class _AreaPaisViewState extends State<AreaPaisView> {
 
                 SizedBox(height: 15),
 
+                // Botão "Alterar Senha": abre a tela de recuperação de senha
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
@@ -279,6 +293,7 @@ class _AreaPaisViewState extends State<AreaPaisView> {
 
                 SizedBox(height: 25),
 
+                // Card do responsável e card das crianças, lado a lado
                 IntrinsicHeight(
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -326,6 +341,7 @@ class _AreaPaisViewState extends State<AreaPaisView> {
                   ),
                 ),
 
+                // Spacer ocupa todo o espaço livre, empurrando o rodapé
                 Spacer(),
                 Text(
                   '© 2026 Pequenos Exploradores - Todos os Direitos Reservados',
@@ -344,6 +360,7 @@ class _AreaPaisViewState extends State<AreaPaisView> {
   }
 }
 
+// Card de informação para mostrar o responsável e a criança
 class _InfoCard extends StatelessWidget {
   final IconData icon;
   final String titulo;
@@ -393,6 +410,7 @@ class _InfoCard extends StatelessWidget {
   }
 }
 
+// Converte minutos em texto legível
 String formatarTempo(double minutos) {
   final h = minutos ~/ 60;
   final m = (minutos % 60).round();
@@ -401,6 +419,7 @@ String formatarTempo(double minutos) {
   return '${h}h${m}min';
 }
 
+// Slider de tempo (de 30min a 2h30min) com título e marcações embaixo
 class _TempoSlider extends StatelessWidget {
   final String titulo;
   final double valor;
@@ -486,6 +505,7 @@ class _TempoSlider extends StatelessWidget {
   }
 }
 
+// Moldura padrão de card que envolve os widget 
 class _CardMoldura extends StatelessWidget {
   final Widget child;
 
