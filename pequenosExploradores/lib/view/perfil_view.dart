@@ -354,7 +354,7 @@ class _PerfilViewState extends State<PerfilView> {
                       onPressed: () {
                         Navigator.pop(context); // volta para a Área dos Pais
                       },
-                      child: Text('<'),
+                      child: Text('>'),
                     ),
 
                     Align(
@@ -581,7 +581,7 @@ class _PerfilViewState extends State<PerfilView> {
                 ),
 
                 Text(
-                  '© Todos os Direitos Reservados',
+                  '© 2026 Pequenos Exploradores - Todos os Direitos Reservados',
                   style: GoogleFonts.fredoka(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,

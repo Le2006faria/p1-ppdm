@@ -156,7 +156,7 @@ class _JogoMatematicaViewState extends State<JogoMatematicaView> {
                           onPressed: () {
                             Navigator.pop(context); // volta para a tela Principal
                           },
-                          child: Text('<'),
+                          child: Text('>'),
                         ),
 
                         SizedBox(height: 10),
@@ -398,7 +398,7 @@ class _JogoMatematicaViewState extends State<JogoMatematicaView> {
                 ),
 
                 Text(
-                  '© Todos os Direitos Reservados',
+                  '© 2026 Pequenos Exploradores - Todos os Direitos Reservados',
                   style: GoogleFonts.fredoka(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
