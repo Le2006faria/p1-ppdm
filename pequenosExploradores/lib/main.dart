@@ -12,18 +12,16 @@ import 'package:progrmacao/view/perfil_view.dart';
 import 'package:progrmacao/view/principal_view.dart';
 import 'package:progrmacao/view/recuperar_senha_view.dart';
 import 'package:progrmacao/view/sobre_view.dart';
+import 'package:progrmacao/firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 // Ponto de entrada do app: é a primeira função executada
-void main(){
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   configurarDependencias();
-
-  runApp(
-    DevicePreview(
-      builder: (context) => MainApp()),
-  );
-  
+  runApp(DevicePreview(builder: (context) => MainApp()));
 }
-
 // Widget raiz do app: configura o MaterialApp
 class MainApp extends StatelessWidget{
   const MainApp({super.key});
