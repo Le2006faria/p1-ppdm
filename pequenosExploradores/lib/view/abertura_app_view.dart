@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:get_it/get_it.dart';
-import 'package:progrmacao/controller/abertura_app_controller.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:progrmacao/view/login_view.dart';
 import 'package:progrmacao/view/sobre_view.dart';
@@ -15,16 +13,6 @@ class AberturaAppView extends StatefulWidget {
 }
 
 class _AberturaAppViewState extends State<AberturaAppView> {
-  //
-  // Associar o Controlador (back) na View (front)
-  //
-  final ctrl = GetIt.I.get<AberturaAppController>();
-
-  @override
-  void initState() {
-    super.initState();
-    ctrl.addListener(() => setState(() {}));
-  }
 
   @override
   Widget build(BuildContext context) {

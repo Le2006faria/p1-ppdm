@@ -93,8 +93,15 @@ class _CadastrarUsuarioViewState extends State<CadastrarUsuarioView> {
           ctrl.senha.isEmpty ||
           ctrl.confirmarSenha.isEmpty ||
           ctrl.quantidadeFilhos == 0 ||
+          ctrl.pin.isEmpty ||
           ctrl.nomesFilhos.any((nome) => nome.trim().isEmpty)) {
         _mostrarAlerta('Atenção', 'Preencha todos os campos!');
+        return;
+      }
+
+      // Pin com exatamente 4 números
+      if (ctrl.pin.length != 4) {
+        _mostrarAlerta('Pin inválido', 'O pin deve ter 4 números!');
         return;
       }
 
@@ -355,6 +362,22 @@ class _CadastrarUsuarioViewState extends State<CadastrarUsuarioView> {
                                   ],
                                 ),
 
+                                SizedBox(height: 15),
+                                _campoTexto(
+                                  label: 'Pin',
+                                  senha: true, // esconde os dígitos
+                                  teclado: TextInputType.number,
+                                  formatadores: [
+                                    FilteringTextInputFormatter
+                                        .digitsOnly, // só números
+                                    LengthLimitingTextInputFormatter(
+                                      4,
+                                    ), // no máximo 4
+                                  ],
+                                  onChanged: (valor) {
+                                    ctrl.setPin(valor);
+                                  },
+                                ),
                                 SizedBox(height: 25),
                                 Text.rich(
                                   TextSpan(

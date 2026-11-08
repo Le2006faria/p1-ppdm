@@ -8,6 +8,7 @@ class CadastrarUsuarioController extends ChangeNotifier {
   String _senha = '';
   String _confirmarSenha = '';
   int _quantidadeFilhos = 0;
+  String _pin = '';
   List<String> _nomesFilhos = [];
 
   String get nomeCompleto => _nomeCompleto;
@@ -18,6 +19,7 @@ class CadastrarUsuarioController extends ChangeNotifier {
   String get confirmarSenha => _confirmarSenha;
   int get quantidadeFilhos => _quantidadeFilhos;
   List<String> get nomesFilhos => _nomesFilhos;
+  String get pin => _pin;
 
   void setNomeCompleto(String novoNome) {
     _nomeCompleto = novoNome;
@@ -64,6 +66,11 @@ class CadastrarUsuarioController extends ChangeNotifier {
 
   void setNomeFilho(int indice, String novoNome) {
     _nomesFilhos[indice] = novoNome;
+    notifyListeners();
+  }
+
+  void setPin(String novoPin) {
+    _pin = novoPin;
     notifyListeners();
   }
 }

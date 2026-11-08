@@ -10,8 +10,8 @@ import 'package:progrmacao/view/login_view.dart';
 
 // Tela principal do app (menu de jogos)
 class PrincipalView extends StatefulWidget {
-  final String nomeCrianca;
-  const PrincipalView({super.key, this.nomeCrianca = 'Criança'});
+  final String? nomeCrianca;
+  const PrincipalView({super.key, this.nomeCrianca});
 
   @override
   State<PrincipalView> createState() => _PrincipalViewState();
@@ -19,6 +19,15 @@ class PrincipalView extends StatefulWidget {
 
 class _PrincipalViewState extends State<PrincipalView> {
   final ctrl = GetIt.I.get<PrincipalController>();
+
+  @override
+  void initState() {
+    super.initState();
+    // Só guarda se veio um nome; se veio nulo, mantém o que já estava salvo
+    if (widget.nomeCrianca != null) {
+      ctrl.setNomeCrianca(widget.nomeCrianca!);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +101,7 @@ class _PrincipalViewState extends State<PrincipalView> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  widget.nomeCrianca,
+                                  ctrl.nomeCrianca,
                                   overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.fredoka(
                                     fontSize: 12,
@@ -208,7 +217,7 @@ class _PrincipalViewState extends State<PrincipalView> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => JogoMatematicaView(nomeCrianca: widget.nomeCrianca),
+                              builder: (context) => JogoMatematicaView(nomeCrianca: ctrl.nomeCrianca),
                             ),
                           );
                         },
@@ -335,7 +344,7 @@ class _PrincipalViewState extends State<PrincipalView> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => JogoPortuguesView(nomeCrianca: widget.nomeCrianca),
+                              builder: (context) => JogoPortuguesView(nomeCrianca: ctrl.nomeCrianca),
                             ),
                           );
                         },

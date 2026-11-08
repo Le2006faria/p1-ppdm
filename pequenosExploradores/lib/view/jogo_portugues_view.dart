@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:progrmacao/view/principal_view.dart';
 import 'package:progrmacao/controller/jogo_portugues_controller.dart';
 
 // Tela do jogo das palavras
@@ -55,14 +54,7 @@ class _JogoPortuguesViewState extends State<JogoPortuguesView> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => PrincipalView(),
-                              ),
-                            );
-                          },
+                          onPressed: () => Navigator.pop(context),
                           child: Text('>'),
                         ),
 
