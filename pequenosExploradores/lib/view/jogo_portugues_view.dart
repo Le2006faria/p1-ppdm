@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:progrmacao/controller/jogo_portugues_controller.dart';
+import 'package:get_it/get_it.dart';
+import 'package:progrmacao/model/jogo_portugues_model.dart';
 
 // Tela do jogo das palavras
 class JogoPortuguesView extends StatefulWidget {
@@ -13,7 +15,21 @@ class JogoPortuguesView extends StatefulWidget {
 }
 
 class _JogoPortuguesViewState extends State<JogoPortuguesView> {
-  final JogoPortuguesController _controller = JogoPortuguesController();
+  final _controller = GetIt.I.get<JogoPortuguesController>();
+
+  void _atualizar() => setState(() {});
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_atualizar);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_atualizar);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -169,18 +185,69 @@ class _JogoPortuguesViewState extends State<JogoPortuguesView> {
 
                 // Lista das palavras do jogo
                 Expanded(
-                  child: ListView.separated(
-                    itemCount: _controller.palavras.length,
-                    separatorBuilder: (_, __) => SizedBox(height: 20),
-                    itemBuilder: (context, index) {
-                      final item = _controller.palavras[index];
-                      return _LinhaPalavra(
-                        texto: item.texto,
-                        resposta: item.resposta,
-                        correta: item.correta,
-                        conferido: _controller.conferido,
-                        onResponder: (valor) {
-                          setState(() => _controller.responder(item, valor));
+                  child: StreamBuilder<List<ItemPalavra>>(
+                    stream: _controller.palavrasStream,
+                    builder: (context, snapshot) {
+                      // Falha: mostra aviso e permite tentar de novo
+                      if (snapshot.hasError) {
+                        return Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Não foi possível carregar as palavras.\nVerifique a internet.',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.fredoka(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 12),
+                              ElevatedButton(
+                                onPressed: _controller.recarregar,
+                                child: Text('Tentar de novo'),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      // Carregando
+                      if (!snapshot.hasData) {
+                        return Center(child: CircularProgressIndicator());
+                      }
+
+                      // Coleção vazia
+                      if (snapshot.data!.isEmpty) {
+                        return Center(
+                          child: Text(
+                            'Nenhuma palavra cadastrada.',
+                            style: GoogleFonts.fredoka(fontSize: 18),
+                          ),
+                        );
+                      }
+
+                      // Dados em tempo real
+                      final rodada = _controller.montarRodada(snapshot.data!);
+
+                      return GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 16,
+                          mainAxisExtent: 140,
+                        ),
+                        itemCount: rodada.length,
+                        itemBuilder: (context, index) {
+                          final item = rodada[index];
+                          return _LinhaPalavra(
+                            texto: item.texto,
+                            resposta: _controller.respostaDe(item.id),
+                            correta: item.correta,
+                            conferido: _controller.conferido,
+                            onResponder: (valor) =>
+                                _controller.responder(item, valor),
+                          );
                         },
                       );
                     },
@@ -203,14 +270,13 @@ class _JogoPortuguesViewState extends State<JogoPortuguesView> {
                   ),
                   onPressed: () {
                     if (_controller.conferido) {
-                      setState(() => _controller.sortear());
+                      _controller.novaRodada();
                     } else {
-                      late int acertos;
-                      setState(() => acertos = _controller.conferir());
+                      final acertos = _controller.conferir();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            'Você acertou $acertos de ${_controller.palavras.length}!',
+                            'Você acertou $acertos de ${_controller.rodadaAtual.length}!',
                           ),
                         ),
                       );
@@ -270,11 +336,12 @@ class _LinhaPalavra extends StatelessWidget {
       corTexto = acertou ? Colors.green.shade800 : Colors.red.shade800;
     }
 
-    return Row(
+    return Column(
       children: [
         Expanded(
           child: AnimatedContainer(
             duration: Duration(milliseconds: 300),
+            width: double.infinity,
             padding: EdgeInsets.all(6),
             alignment: Alignment.center,
             decoration: BoxDecoration(
@@ -286,7 +353,7 @@ class _LinhaPalavra extends StatelessWidget {
               child: Text(
                 texto,
                 style: TextStyle(
-                  fontSize: 40,
+                  fontSize: 36,
                   fontWeight: FontWeight.bold,
                   color: corTexto,
                 ),
@@ -294,23 +361,24 @@ class _LinhaPalavra extends StatelessWidget {
             ),
           ),
         ),
-
-        SizedBox(width: 16),
-
-        _BotaoResposta(
-          icone: FontAwesomeIcons.check,
-          corIcone: Colors.green.shade800,
-          selecionado: resposta == true,
-          onTap: () => onResponder(true),
-        ),
-
-        SizedBox(width: 16),
-
-        _BotaoResposta(
-          icone: FontAwesomeIcons.xmark,
-          corIcone: Colors.red.shade800,
-          selecionado: resposta == false,
-          onTap: () => onResponder(false),
+        SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _BotaoResposta(
+              icone: FontAwesomeIcons.check,
+              corIcone: Colors.green.shade800,
+              selecionado: resposta == true,
+              onTap: () => onResponder(true),
+            ),
+            SizedBox(width: 16),
+            _BotaoResposta(
+              icone: FontAwesomeIcons.xmark,
+              corIcone: Colors.red.shade800,
+              selecionado: resposta == false,
+              onTap: () => onResponder(false),
+            ),
+          ],
         ),
       ],
     );

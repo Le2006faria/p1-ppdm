@@ -1,55 +1,87 @@
+import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:progrmacao/model/jogo_portugues_model.dart';
 
 // Guarda o banco de palavras, sorteia cada rodada, registra as respostas da criança e calcula a quantidade de acertos
 class JogoPortuguesController extends ChangeNotifier {
-  final List<ItemPalavra> _banco = [
-    ItemPalavra(texto: 'Casa', correta: true),
-    ItemPalavra(texto: 'Kasa', correta: false),
-    ItemPalavra(texto: 'Séu', correta: false),
-    ItemPalavra(texto: 'Céu', correta: true),
-    ItemPalavra(texto: 'Cachorro', correta: true),
-    ItemPalavra(texto: 'Caxorro', correta: false),
-    ItemPalavra(texto: 'Bunita', correta: false),
-    ItemPalavra(texto: 'Bonita', correta: true),
-    ItemPalavra(texto: 'Atrasado', correta: true),
-    ItemPalavra(texto: 'Atrazado', correta: false),
-    ItemPalavra(texto: 'Geito', correta: false),
-    ItemPalavra(texto: 'Jeito', correta: true),
-  ];
-
-  // Indica se a rodada atual já foi conferida
-  bool conferido = false;
-  // Palavras da rodada atual (as 4 sorteadas do banco)
-  List<ItemPalavra> palavras = [];
-
-  // Construtor: já sorteia a primeira rodada ao criar o controller
-  JogoPortuguesController() {
-    sortear();
+    JogoPortuguesController({FirebaseFirestore? firestore})
+      : _db = firestore ?? FirebaseFirestore.instance {
+    _stream = _criarStream();
   }
 
-  // Começa uma nova rodada: embaralha o banco e pega 4 palavras
-  void sortear() {
-    conferido = false;
-    final copia = List<ItemPalavra>.from(_banco)..shuffle();
-    palavras = copia
-        .take(4)
-        .map((p) => ItemPalavra(texto: p.texto, correta: p.correta))
-        .toList();
+  final FirebaseFirestore _db;
+  static const int _palavrasPorRodada = 4;
+
+  // o StreamBuilder reconectaria a cada rebuild
+  late Stream<List<ItemPalavra>> _stream;
+  Stream<List<ItemPalavra>> get palavrasStream => _stream;
+
+  Stream<List<ItemPalavra>> _criarStream() {
+    return _db.collection('palavras').snapshots().map(
+          (snap) => snap.docs
+              .map(ItemPalavra.fromFirestore)
+              .where((p) => p.texto.isNotEmpty)
+              .toList(),
+        );
   }
 
-  // Registra a resposta da criança para uma palavra (se verdadeiro/correto ou se falso/errado)
+  // "Tentar de novo" depois de um erro: abre um stream novo
+  void recarregar() {
+    _stream = _criarStream();
+    notifyListeners();
+  }
+
+    List<String> _idsRodada = [];
+  List<ItemPalavra> _rodadaAtual = [];
+  final Map<String, bool> _respostas = {};
+  bool _conferido = false;
+
+  bool get conferido => _conferido;
+  List<ItemPalavra> get rodadaAtual => _rodadaAtual;
+
+  // Chamado pelo StreamBuilder a cada atualização do Firestore
+  List<ItemPalavra> montarRodada(List<ItemPalavra> banco) {
+    final porId = {for (final p in banco) p.id: p};
+    final tamanho = min(_palavrasPorRodada, banco.length);
+
+    final rodadaValida =
+        _idsRodada.length == tamanho && _idsRodada.every(porId.containsKey);
+
+    if (!rodadaValida) {
+      final copia = List<ItemPalavra>.from(banco)..shuffle();
+      _idsRodada = copia.take(tamanho).map((p) => p.id).toList();
+      _respostas.clear();
+      _conferido = false;
+    }
+
+    _rodadaAtual = _idsRodada.map((id) => porId[id]!).toList();
+    return _rodadaAtual;
+  }
+
+  // Resposta marcada pela criança (null = ainda não marcou)
+  bool? respostaDe(String id) => _respostas[id];
+
   void responder(ItemPalavra item, bool valor) {
-    if (conferido) return;
-    item.resposta = valor;
+    if (_conferido) return;
+    _respostas[item.id] = valor;
+    notifyListeners();
   }
 
   int conferir() {
-    conferido = true;
-    int acertos = 0;
-    for (final item in palavras) {
-      if (item.resposta == item.correta) acertos++;
-    }
+    _conferido = true;
+    final acertos =
+        _rodadaAtual.where((p) => _respostas[p.id] == p.correta).length;
+    notifyListeners();
     return acertos;
+  }
+
+  // "Jogar de novo": zera a rodada; o StreamBuilder sorteia outra
+  void novaRodada() {
+    _idsRodada = [];
+    _rodadaAtual = [];
+    _respostas.clear();
+    _conferido = false;
+    notifyListeners();
   }
 }

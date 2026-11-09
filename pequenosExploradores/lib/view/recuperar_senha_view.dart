@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:progrmacao/controller/recuperar_senha_controller.dart';
 
 class RecuperarSenhaView extends StatefulWidget {
-  const RecuperarSenhaView({super.key});
+  final bool exigirPin;
+  const RecuperarSenhaView({super.key, this.exigirPin = true});
 
   @override
   State<RecuperarSenhaView> createState() => _RecuperarSenhaViewState();
@@ -17,72 +19,96 @@ class _RecuperarSenhaViewState extends State<RecuperarSenhaView> {
   //
   final ctrl = GetIt.I.get<RecuperarSenhaController>();
 
+  void _atualizar() => setState(() {});
+
   @override
   void initState() {
     super.initState();
-    ctrl.addListener(() => setState(() {}));
+    ctrl.addListener(_atualizar);
 
-    // Pop-up de "senha do adulto", exibido antes de entrar
-    // definitivamente na tela (RF003), para impedir o acesso da criança.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _mostrarPopupResponsavel();
-    });
+    // Só pede o PIN quando a tela é aberta pelo login
+    if (widget.exigirPin) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _mostrarPopupResponsavel();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    ctrl.removeListener(_atualizar);
+    super.dispose();
   }
 
   void _mostrarPopupResponsavel() {
+    final pinCtrl = TextEditingController();
+    ctrl.limparMensagemErro();
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Text(
-            'Espaço dos responsáveis',
-            style: GoogleFonts.fredoka(fontWeight: FontWeight.bold),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Peça para um adulto digitar a senha para continuar até a recuperação de senha.',
-                style: GoogleFonts.fredoka(),
-              ),
-              SizedBox(height: 12),
-              TextField(
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'Senha do adulto',
-                  filled: true,
-                  fillColor: Colors.blueGrey.shade100,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+      builder: (dialogContext) {
+        return ListenableBuilder(
+          listenable: ctrl,
+          builder: (_, __) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Text(
+              'Espaço dos responsáveis',
+              style: GoogleFonts.fredoka(fontWeight: FontWeight.bold),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Um adulto digitar o PIN para recuperar a senha.',
+                  style: GoogleFonts.fredoka(),
+                ),
+                SizedBox(height: 12),
+                TextField(
+                  controller: pinCtrl,
+                  obscureText: true,
+                  keyboardType: TextInputType.number,
+                  maxLength: 4,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  decoration: InputDecoration(
+                    labelText: 'PIN do responsável',
+                    counterText: '',
+                    errorText: ctrl.mensagemErro,
+                    filled: true,
+                    fillColor: Colors.blueGrey.shade100,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                 ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext); // fecha o pop-up
+                  Navigator.pop(context); // volta para a tela anterior
+                },
+                child: Text('Cancelar'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.cyan.shade700,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () async {
+                  final ok = await ctrl.validarPin(pinCtrl.text);
+                  if (ok && dialogContext.mounted) {
+                    Navigator.pop(dialogContext);
+                  }
+                },
+                child: Text('Confirmar'),
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // fecha o pop-up
-                Navigator.pop(context); // volta para o login
-              },
-              child: Text('Cancelar'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.cyan.shade700,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () {
-                Navigator.pop(context); // libera a tela
-              },
-              child: Text('Confirmar'),
-            ),
-          ],
         );
       },
     );
@@ -250,62 +276,76 @@ class _RecuperarSenhaViewState extends State<RecuperarSenhaView> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            onPressed: () {
-                              if (ctrl.email != '') {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return AlertDialog(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      title: Text(
-                                        'Instruções enviadas!',
-                                        style: GoogleFonts.fredoka(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      content: Text(
-                                        'Confira sua caixa de entrada (e o spam) para redefinir a senha.',
-                                        style: GoogleFonts.fredoka(),
-                                      ),
-                                      actions: [
-                                        ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.cyan.shade700,
-                                            foregroundColor: Colors.white,
+                            onPressed: ctrl.carregando
+                                ? null
+                                : () async {
+                                    final ok = await ctrl.enviarInstrucoes();
+                                    if (!context.mounted) return;
+
+                                    if (ok) {
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
                                           ),
-                                          onPressed: () {
-                                            Navigator.pop(context); // fecha o pop-up
-                                            Navigator.pop(context); // volta para o login
-                                          },
-                                          child: Text('Ok, entendi'),
+                                          title: Text(
+                                            'Instruções enviadas!',
+                                            style: GoogleFonts.fredoka(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          content: Text(
+                                            'Se o e-mail estiver cadastrado, você receberá as instruções na caixa de entrada (confira o spam).',
+                                            style: GoogleFonts.fredoka(),
+                                          ),
+                                          actions: [
+                                            ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor:
+                                                    Colors.cyan.shade700,
+                                                foregroundColor: Colors.white,
+                                              ),
+                                              onPressed: () {
+                                                Navigator.pop(
+                                                  context,
+                                                ); // fecha o pop-up
+                                                Navigator.pop(
+                                                  context,
+                                                ); // volta para a tela anterior
+                                              },
+                                              child: Text('Ok, entendi'),
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    );
-                                  },
-                                );
-                              } else {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return AlertDialog(
-                                      title: Text('Atenção'),
-                                      content: Text('Informe o e-mail cadastrado!'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.pop(context); // fecha o pop-up
-                                          },
-                                          child: Text('OK'),
+                                      );
+                                    } else {
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          title: Text('Atenção'),
+                                          content: Text(
+                                            ctrl.mensagemErro ??
+                                                'Erro ao enviar.',
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.pop(context),
+                                              child: Text('OK'),
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    );
+                                      );
+                                    }
                                   },
-                                );
-                              }
-                            },
-                            child: Text('Enviar Instruções'),
+                            child: Text(
+                              ctrl.carregando
+                                  ? 'Enviando...'
+                                  : 'Enviar Instruções',
+                            ),
                           ),
                         ),
                       ],

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:progrmacao/controller/area_pais_controller.dart';
 import 'package:progrmacao/view/perfil_view.dart';
 import 'package:progrmacao/view/recuperar_senha_view.dart';
+import 'package:flutter/services.dart';
 
 // Tela da Área dos Pais
 class AreaPaisView extends StatefulWidget {
@@ -17,76 +18,94 @@ class AreaPaisView extends StatefulWidget {
 class _AreaPaisViewState extends State<AreaPaisView> {
   final ctrl = GetIt.I.get<AreaPaisController>();
 
-  // Dados fixos e temporários para a mãe e crianças, será dinâmico na sprint do back
-  final String nomeResponsavel = 'Maria Silva';
-  final List<String> nomeCrianca = ['Ana', 'João', 'José'];
-  double limiteDiario = 60;
-  double mediaDiaria = 90;
+  void _atualizar() => setState(() {});
 
   @override
   void initState() {
     super.initState();
-    ctrl.addListener(() => setState(() {}));
+    ctrl.addListener(_atualizar);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _mostrarPopupResponsavel();
     });
   }
 
+  @override
+  void dispose() {
+    ctrl.removeListener(_atualizar);
+    super.dispose();
+  }
+
   // Mostra o pop-up que pede a senha do adulto antes de liberar a tela
   void _mostrarPopupResponsavel() {
+    final pinCtrl = TextEditingController();
+    ctrl.limparMensagemErro();
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Text(
-            'Espaço dos responsáveis',
-            style: GoogleFonts.fredoka(fontWeight: FontWeight.bold),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Peça para um adulto digitar a senha para continuar até a recuperação de senha.',
-                style: GoogleFonts.fredoka(),
-              ),
-              SizedBox(height: 12),
-              TextField(
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'Senha do adulto',
-                  filled: true,
-                  fillColor: Colors.blueGrey.shade100,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+      builder: (dialogContext) {
+        return ListenableBuilder(
+          listenable: ctrl,
+          builder: (_, __) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Text(
+              'Espaço dos responsáveis',
+              style: GoogleFonts.fredoka(fontWeight: FontWeight.bold),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Um adulto digitar o PIN para continuar.',
+                  style: GoogleFonts.fredoka(),
+                ),
+                SizedBox(height: 12),
+                TextField(
+                  controller: pinCtrl,
+                  obscureText: true,
+                  keyboardType: TextInputType.number,
+                  maxLength: 4,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  decoration: InputDecoration(
+                    labelText: 'PIN do responsável',
+                    counterText: '',
+                    errorText: ctrl.mensagemErro,
+                    filled: true,
+                    fillColor: Colors.blueGrey.shade100,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                 ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext); // fecha o pop-up
+                  Navigator.pop(context); // volta para a tela anterior
+                },
+                child: Text('Cancelar'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.cyan.shade700,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () async {
+                  final ok = await ctrl.validarPin(pinCtrl.text);
+                  if (ok && dialogContext.mounted) {
+                    Navigator.pop(dialogContext);
+                    ctrl.carregarDados();
+                  }
+                },
+                child: Text('Confirmar'),
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // fecha o pop-up
-                Navigator.pop(context); // volta para o login
-              },
-              child: Text('Cancelar'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.cyan.shade700,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () {
-                Navigator.pop(context); // libera a tela
-              },
-              child: Text('Confirmar'),
-            ),
-          ],
         );
       },
     );
@@ -109,7 +128,7 @@ class _AreaPaisViewState extends State<AreaPaisView> {
             padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
             child: Column(
               children: [
-                 // Barra superior: botão de voltar + selo com o nome do app
+                // Barra superior: botão de voltar + selo com o nome do app
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -215,8 +234,9 @@ class _AreaPaisViewState extends State<AreaPaisView> {
                 _CardMoldura(
                   child: _TempoSlider(
                     titulo: 'Controle de tempo de uso diário',
-                    valor: limiteDiario,
-                    onChanged: (v) => setState(() => limiteDiario = v),
+                    valor: ctrl.limiteDiario.clamp(30.0, 150.0).toDouble(),
+                    onChanged: ctrl.setLimiteDiario,
+                    onChangeEnd: (_) => ctrl.salvarLimiteDiario(),
                   ),
                 ),
 
@@ -226,8 +246,7 @@ class _AreaPaisViewState extends State<AreaPaisView> {
                 _CardMoldura(
                   child: _TempoSlider(
                     titulo: 'Média de uso diário',
-                    valor: mediaDiaria,
-                    onChanged: (v) => setState(() => mediaDiaria = v),
+                    valor: ctrl.mediaDiaria.clamp(30.0, 150.0).toDouble(),
                   ),
                 ),
 
@@ -303,7 +322,7 @@ class _AreaPaisViewState extends State<AreaPaisView> {
                           icon: Icons.person_rounded,
                           titulo: 'Responsável',
                           child: Text(
-                            nomeResponsavel,
+                            ctrl.nomeResponsavel,
                             style: GoogleFonts.fredoka(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
@@ -319,7 +338,7 @@ class _AreaPaisViewState extends State<AreaPaisView> {
                           titulo: 'Criança',
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: nomeCrianca
+                            children: ctrl.filhos
                                 .map(
                                   (nome) => Padding(
                                     padding: EdgeInsets.symmetric(vertical: 2),
@@ -424,11 +443,13 @@ class _TempoSlider extends StatelessWidget {
   final String titulo;
   final double valor;
   final ValueChanged<double>? onChanged;
+  final ValueChanged<double>? onChangeEnd;    
 
   const _TempoSlider({
     required this.titulo,
     required this.valor,
     this.onChanged,
+    this.onChangeEnd,                  
   });
 
   @override
@@ -505,7 +526,7 @@ class _TempoSlider extends StatelessWidget {
   }
 }
 
-// Moldura padrão de card que envolve os widget 
+// Moldura padrão de card que envolve os widget
 class _CardMoldura extends StatelessWidget {
   final Widget child;
 

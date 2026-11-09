@@ -14,16 +14,29 @@ import 'package:progrmacao/view/recuperar_senha_view.dart';
 import 'package:progrmacao/view/sobre_view.dart';
 import 'package:progrmacao/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:progrmacao/core/pin_service.dart';
 
 // Ponto de entrada do app: é a primeira função executada
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // --------------------------------------------------------------------------------
+  // TEMPORÁRIO: remover quando o login do grupo estiver pronto
+  await FirebaseAuth.instance.signInWithEmailAndPassword(
+    email: 'teste@teste.com',
+    password: 'Teste@1234',
+  );
+  await PinService().salvarPinLocal('1234');
+  // --------------------------------------------------------------------------------
+
   configurarDependencias();
   runApp(DevicePreview(builder: (context) => MainApp()));
 }
+
 // Widget raiz do app: configura o MaterialApp
-class MainApp extends StatelessWidget{
+class MainApp extends StatelessWidget {
   const MainApp({super.key});
 
   @override
@@ -35,16 +48,16 @@ class MainApp extends StatelessWidget{
       initialRoute: AppRoutes.aberturaApp,
       // Tabela de rotas: associa cada nome de rota à tela correspondente
       routes: {
-        AppRoutes.aberturaApp:(context) => const AberturaAppView(),
-        AppRoutes.areaPais:(context) => const AreaPaisView(),
-        AppRoutes.cadastrarUsuario:(context) => const CadastrarUsuarioView(),
-        AppRoutes.jogoMatematica:(context) => const JogoMatematicaView(),
-        AppRoutes.jogoPortugues:(context) => const JogoPortuguesView(),
-        AppRoutes.login:(context) => const LoginView(),
-        AppRoutes.perfil:(context) => const PerfilView(),
-        AppRoutes.principal:(context) => const PrincipalView(),
-        AppRoutes.recuperarSenha:(context) => const RecuperarSenhaView(),
-        AppRoutes.sobre:(context) => const SobreView(),
+        AppRoutes.aberturaApp: (context) => const AberturaAppView(),
+        AppRoutes.areaPais: (context) => const AreaPaisView(),
+        AppRoutes.cadastrarUsuario: (context) => const CadastrarUsuarioView(),
+        AppRoutes.jogoMatematica: (context) => const JogoMatematicaView(),
+        AppRoutes.jogoPortugues: (context) => const JogoPortuguesView(),
+        AppRoutes.login: (context) => const LoginView(),
+        AppRoutes.perfil: (context) => const PerfilView(),
+        AppRoutes.principal: (context) => const PrincipalView(),
+        AppRoutes.recuperarSenha: (context) => const RecuperarSenhaView(),
+        AppRoutes.sobre: (context) => const SobreView(),
       },
     );
   }
