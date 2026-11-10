@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:progrmacao/controller/login_controller.dart';
 import 'package:progrmacao/controller/perfil_controller.dart';
+import 'package:progrmacao/core/app_routes.dart';
 
 class PerfilView extends StatefulWidget {
   const PerfilView({super.key});
@@ -29,17 +31,38 @@ class _PerfilViewState extends State<PerfilView> {
   @override
   void initState() {
     super.initState();
-    ctrl.carregarDados(); // sempre abre com os dados iniciais
-
-    _nomeUsuarioCtrl = TextEditingController(text: ctrl.nomeUsuario);
+    _nomeUsuarioCtrl = TextEditingController();
     _emailCtrl = TextEditingController(text: ctrl.email);
-    for (final nome in ctrl.nomesFilhos) {
-      _filhosCtrls.add(TextEditingController(text: nome));
-    }
+    ctrl.addListener(_atualizar);
+    _carregar(); // lê o perfil do usuário logado no Firestore
+  }
+
+  void _atualizar() {
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _carregar() async {
+    await ctrl.carregarDados();
+    if (!mounted) return;
+    _emailCtrl.text = ctrl.email;
+    _reconstruirCampos();
+    setState(() {});
+  }
+
+  // Encerra a sessão (signOut) e volta para o Login
+  Future<void> _sair() async {
+    await GetIt.I.get<LoginController>().logout();
+    if (!mounted) return;
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      AppRoutes.login,
+      (route) => false,
+    );
   }
 
   @override
   void dispose() {
+    ctrl.removeListener(_atualizar);
     _nomeUsuarioCtrl.dispose();
     _emailCtrl.dispose();
     _novoFilhoCtrl.dispose();
@@ -149,7 +172,17 @@ class _PerfilViewState extends State<PerfilView> {
 
     // NÃO navega para nenhuma tela: volta para a tela só de exibição,
     // já mostrando o que foi alterado
-    ctrl.salvar();
+    final ok = await ctrl.salvar(); // grava no Firestore
+    if (!mounted) return;
+
+    if (!ok) {
+      _mostrarAlerta(
+        'Erro',
+        ctrl.mensagemErro ?? 'Não foi possível salvar as alterações.',
+      );
+      return;
+    }
+
     setState(() {
       _editando = false;
       _novoFilhoCtrl.clear();
@@ -429,6 +462,25 @@ class _PerfilViewState extends State<PerfilView> {
 
                         SizedBox(height: 15),
 
+                        if (ctrl.carregando)
+                          Padding(
+                            padding: EdgeInsets.only(bottom: 12),
+                            child: CircularProgressIndicator(),
+                          ),
+                        if (ctrl.mensagemErro != null)
+                          Padding(
+                            padding: EdgeInsets.only(bottom: 12),
+                            child: Text(
+                              ctrl.mensagemErro!,
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.fredoka(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.red.shade900,
+                              ),
+                            ),
+                          ),
+
                         Card(
                           color: Colors.blueGrey.shade100,
                           elevation: 6,
@@ -524,11 +576,13 @@ class _PerfilViewState extends State<PerfilView> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              onPressed: () {
-                                setState(() {
-                                  _editando = true;
-                                });
-                              },
+                              onPressed: ctrl.carregando
+                                  ? null
+                                  : () {
+                                      setState(() {
+                                        _editando = true;
+                                      });
+                                    },
                               child: Text('Editar'),
                             ),
                           )
@@ -573,6 +627,21 @@ class _PerfilViewState extends State<PerfilView> {
                             ),
                           ),
                         ],
+
+                        if (!_editando)
+                          TextButton.icon(
+                            onPressed: _sair,
+                            icon: Icon(Icons.exit_to_app, color: Colors.black),
+                            label: Text(
+                              'Sair da conta',
+                              style: GoogleFonts.fredoka(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
 
                         SizedBox(height: 10),
                       ],

@@ -83,7 +83,7 @@ class _CadastrarUsuarioViewState extends State<CadastrarUsuarioView> {
     );
   }
 
-  void _cadastrar() {
+  Future<void> _cadastrar() async {
     try {
       // Pop-up caso falte informação
       if (ctrl.nomeCompleto.trim().isEmpty ||
@@ -123,7 +123,32 @@ class _CadastrarUsuarioViewState extends State<CadastrarUsuarioView> {
         return;
       }
 
-      // Cadastro ok -> volta para o Login
+      // Cria a conta no Firebase Authentication e grava os dados no Firestore
+      final erro = await ctrl.cadastrar();
+      if (!mounted) return;
+
+      if (erro != null) {
+        _mostrarAlerta('Erro', erro);
+        return;
+      }
+
+      // Cadastro ok -> avisa e volta para o Login
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          title: Text('Sucesso'),
+          content: Text('Usuário criado com sucesso. Faça o login!'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
+      if (!mounted) return;
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => LoginView()),
@@ -506,7 +531,7 @@ class _CadastrarUsuarioViewState extends State<CadastrarUsuarioView> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            onPressed: _cadastrar,
+                            onPressed: ctrl.carregando ? null : _cadastrar,
                             child: Text('Cadastrar'),
                           ),
                         ),
@@ -535,9 +560,7 @@ class _CadastrarUsuarioViewState extends State<CadastrarUsuarioView> {
   }
 }
 
-//
 // Formatador do telefone: (00)00000-0000
-//
 class TelefoneFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(

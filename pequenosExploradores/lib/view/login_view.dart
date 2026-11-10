@@ -22,15 +22,100 @@ class _LoginViewState extends State<LoginView> {
   //
   final ctrl = GetIt.I.get<LoginController>();
 
-  // Criança escolhida no dropdown (null = nenhuma escolhida ainda)
-  String? filhoSelecionado;
-  // Lista fixa de criança (vou trocar na sprint do back)
-  final List<String> filhos = ['Ana', 'João', 'José'];
+  void _atualizar() {
+    if (mounted) setState(() {});
+  }
 
   @override
   void initState() {
     super.initState();
-    ctrl.addListener(() => setState(() {}));
+    ctrl.addListener(_atualizar);
+  }
+
+  @override
+  void dispose() {
+    ctrl.removeListener(_atualizar);
+    super.dispose();
+  }
+
+  void _mostrarAlerta(String mensagem) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Atenção'),
+          content: Text(mensagem),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Pop-up com os filhos cadastrados pelo responsável (lidos do Firestore
+  // depois do login). Retorna o nome escolhido ou null se cancelar.
+  Future<String?> _escolherFilho() async {
+    if (ctrl.filhos.isEmpty) return 'Criança';
+    if (ctrl.filhos.length == 1) return ctrl.filhos.first;
+
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return SimpleDialog(
+          title: Text('Quem vai jogar?'),
+          children: [
+            for (final nome in ctrl.filhos)
+              SimpleDialogOption(
+                onPressed: () => Navigator.pop(dialogContext, nome),
+                child: Text(nome, style: TextStyle(fontSize: 20)),
+              ),
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text('Cancelar', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Valida os campos, autentica no Firebase e abre a tela principal
+  Future<void> _entrar() async {
+    if (ctrl.email.trim().isEmpty || ctrl.senha.isEmpty) {
+      _mostrarAlerta('Informe o email e a senha!');
+      return;
+    }
+    if (!ctrl.emailValido) {
+      _mostrarAlerta('Digite um email válido!');
+      return;
+    }
+
+    final erro = await ctrl.login();
+    if (!mounted) return;
+
+    if (erro != null) {
+      _mostrarAlerta(erro);
+      return;
+    }
+
+    final filho = await _escolherFilho();
+    if (!mounted) return;
+
+    if (filho == null) {
+      // Cancelou a escolha: encerra a sessão
+      await ctrl.logout();
+      return;
+    }
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => PrincipalView(nomeCrianca: filho)),
+    );
   }
 
   @override
@@ -165,7 +250,7 @@ class _LoginViewState extends State<LoginView> {
 
                 SizedBox(height: 20),
 
-                // Formulário (dentro de um Card): email, filho e senha
+                // Formulário (dentro de um Card): email e senha
                 Card(
                   color: Colors.blueGrey.shade100,
                   elevation: 6,
@@ -193,37 +278,6 @@ class _LoginViewState extends State<LoginView> {
                           onChanged: (valor) {
                             ctrl.setEmail(valor);
                           },
-                        ),
-
-                        SizedBox(height: 15),
-
-                        // Dropdown para escolher qual criança vai usar o app
-                        DropdownButtonFormField<String>(
-                          value: filhoSelecionado,
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black,
-                          ),
-                          decoration: InputDecoration(
-                            labelText: 'Filhos',
-                            filled: true,
-                            fillColor: Colors.blueGrey.shade200,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                          items: filhos
-                              .map(
-                                (nome) => DropdownMenuItem(
-                                  value: nome,
-                                  child: Text(nome),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (valor) =>
-                              setState(() => filhoSelecionado = valor),
                         ),
 
                         SizedBox(height: 15),
@@ -288,43 +342,14 @@ class _LoginViewState extends State<LoginView> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  onPressed: () {
-                    String? erro;
-
-                    if (ctrl.email == '' ||
-                        ctrl.senha == '' ||
-                        filhoSelecionado == null) {
-                      erro = 'Informe o email, a senha e o filho!';
-                    } else if (!ctrl.emailValido) {
-                      erro = 'Digite um email válido!';
-                    }
-
-                    if (erro == null) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PrincipalView(nomeCrianca: filhoSelecionado!),
-                        ),
-                      );
-                    } else {
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            title: Text('Atenção'),
-                            content: Text(erro!),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: Text('OK'),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    }
-                  },
-                  child: Text('Acessar'),
+                  onPressed: ctrl.carregando ? null : _entrar,
+                  child: ctrl.carregando
+                      ? SizedBox(
+                          width: 32,
+                          height: 32,
+                          child: CircularProgressIndicator(strokeWidth: 3),
+                        )
+                      : Text('Acessar'),
                 ),
 
                 // Link para a tela de cadastro de novo usuário

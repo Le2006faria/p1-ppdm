@@ -1,44 +1,62 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
-import 'package:progrmacao/controller/login_controller.dart';
 
 class PerfilController extends ChangeNotifier {
-  // Só lê o e-mail do login (o login não é alterado)
-  late final LoginController _login = GetIt.I.get<LoginController>();
-
-  // Filhos pré-definidos (apenas exibição, nada é gravado)
-  static const List<String> _filhosPredefinidos = ['Ana', 'João', 'José'];
-
   // Dados mostrados/editados na tela
   String _nomeUsuario = '';
   List<String> _nomesFilhos = [];
 
-  // Último estado "salvo" (o que a tela de exibição mostra)
+  // Último estado salvo no Firestore (o que a tela de exibição mostra)
   String _nomeSalvo = '';
   List<String> _filhosSalvos = [];
 
+  bool _carregando = false;
+  String? _mensagemErro;
+
   String get nomeUsuario => _nomeUsuario;
   List<String> get nomesFilhos => _nomesFilhos;
+  bool get carregando => _carregando;
+  String? get mensagemErro => _mensagemErro;
 
-  // E-mail utilizado no login (não pode ser alterado)
-  String get email => _login.email;
+  // E-mail da conta logada (não pode ser alterado)
+  String get email => FirebaseAuth.instance.currentUser?.email ?? '';
 
-  // Nome tirado do e-mail do login: "maria.silva@x.com" -> "Maria Silva"
-  String _nomeDoEmail(String email) {
-    final parteLocal = email.trim().split('@').first.replaceAll(RegExp(r'\d'), '');
-    final partes = parteLocal
-        .split(RegExp(r'[._\-+]+'))
-        .where((p) => p.isNotEmpty);
-    return partes
-        .map((p) => p[0].toUpperCase() + p.substring(1).toLowerCase())
-        .join(' ');
+  DocumentReference<Map<String, dynamic>>? get _docUsuario {
+    final usuario = FirebaseAuth.instance.currentUser;
+    if (usuario == null) return null;
+    return FirebaseFirestore.instance.collection('usuarios').doc(usuario.uid);
   }
 
-  // Abre o perfil com os dados iniciais
-  void carregarDados() {
-    _nomeSalvo = _nomeDoEmail(_login.email);
-    _filhosSalvos = List<String>.from(_filhosPredefinidos);
-    cancelar();
+  // Lê o perfil do usuário logado no Firestore
+  Future<void> carregarDados() async {
+    final doc = _docUsuario;
+    if (doc == null) {
+      _mensagemErro = 'Nenhum usuário autenticado.';
+      notifyListeners();
+      return;
+    }
+
+    _carregando = true;
+    _mensagemErro = null;
+    notifyListeners();
+
+    try {
+      final dados = (await doc.get()).data() ?? {};
+      _nomeSalvo = (dados['nomeUsuario'] ?? dados['nomeCompleto'] ?? '')
+          .toString();
+      _filhosSalvos = List<String>.from(dados['filhos'] ?? const []);
+      cancelar();
+    } on FirebaseException catch (e) {
+      _mensagemErro = e.code == 'permission-denied'
+          ? 'Sem permissão para acessar os dados.'
+          : 'Não foi possível carregar o perfil.';
+    } catch (_) {
+      _mensagemErro = 'Não foi possível carregar o perfil.';
+    }
+
+    _carregando = false;
+    notifyListeners();
   }
 
   void setNomeUsuario(String novoNome) {
@@ -68,11 +86,39 @@ class PerfilController extends ChangeNotifier {
       _nomeUsuario.trim().isNotEmpty &&
       !_nomesFilhos.any((nome) => nome.trim().isEmpty);
 
-  // Simbólico: só passa a tela de exibição a mostrar o que foi editado
-  void salvar() {
-    _nomeSalvo = _nomeUsuario;
-    _filhosSalvos = List<String>.from(_nomesFilhos);
+  // Grava as alterações no Firestore. Retorna true se deu certo.
+  Future<bool> salvar() async {
+    final doc = _docUsuario;
+    if (doc == null) {
+      _mensagemErro = 'Nenhum usuário autenticado.';
+      notifyListeners();
+      return false;
+    }
+
+    final nome = _nomeUsuario.trim();
+    final filhos = _nomesFilhos.map((n) => n.trim()).toList();
+
+    try {
+      await doc.set({
+        'nomeUsuario': nome,
+        'filhos': filhos,
+        'atualizadoEm': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      _nomeSalvo = nome;
+      _filhosSalvos = filhos;
+      _mensagemErro = null;
+      notifyListeners();
+      return true;
+    } on FirebaseException catch (e) {
+      _mensagemErro = e.code == 'permission-denied'
+          ? 'Sem permissão para gravar os dados.'
+          : 'Não foi possível salvar as alterações.';
+    } catch (_) {
+      _mensagemErro = 'Não foi possível salvar as alterações.';
+    }
     notifyListeners();
+    return false;
   }
 
   // Descarta o que foi mexido e volta ao último estado salvo
